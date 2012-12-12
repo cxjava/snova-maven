@@ -1,8 +1,8 @@
 package org.snova.c4.launch;
+
 /**
  * 
  */
-
 
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
@@ -17,27 +17,24 @@ import org.snova.c4.server.servlet.PushPullServlet;
 //import org.snova.c4.server.servlet.RSocketHeartBeatServlet;
 import org.snova.httpdns.DNSServlet;
 
-
-
 /**
  * @author wqy
- *
+ * 
  */
-public class LauncherServer
-{
-	
+public class LauncherServer {
+
 	/**
 	 * @param args
 	 */
-	public static void main(String[] args) throws Exception
-	{
+	public static void main(String[] args) throws Exception {
+		// Turn on autoExpand (it is off by default)
 		String portstr = System.getenv("PORT");
-//		Server server = new Server(Integer.valueOf(null == portstr ? "8080"
-//		        : portstr));
+		// Server server = new Server(Integer.valueOf(null == portstr ? "8080"
+		// : portstr));
 		Server server = new Server();
-		
-		ServletContextHandler context = new ServletContextHandler(
-		        ServletContextHandler.NO_SESSIONS | ServletContextHandler.NO_SECURITY);
+
+		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS
+				| ServletContextHandler.NO_SECURITY);
 		context.setContextPath("/");
 		server.setHandler(context);
 		context.addServlet(new ServletHolder(new IndexServlet()), "/*");
@@ -45,21 +42,20 @@ public class LauncherServer
 		context.addServlet(new ServletHolder(new DNSServlet()), "/dns");
 		QueuedThreadPool pool = new QueuedThreadPool(30);
 		pool.setMaxIdleTimeMs(30000);
-		//server.setConnectors(arg0)
+		// server.setConnectors(arg0)
 		server.setThreadPool(pool);
 		SelectChannelConnector connector = new SelectChannelConnector();
 		connector.setThreadPool(pool);
 		connector.setAcceptors(2);
 		connector.setMaxIdleTime(1000 * 120);
-        connector.setSoLingerTime(-1);
-        connector.setAcceptQueueSize(10);
-        connector.setReuseAddress(true);
-        connector.setUseDirectBuffers(true);
-		connector.setPort(Integer.valueOf(null == portstr ? "8080"
-		        : portstr));
-		server.setConnectors(new Connector[]{connector});
+		connector.setSoLingerTime(-1);
+		connector.setAcceptQueueSize(10);
+		connector.setReuseAddress(true);
+		connector.setUseDirectBuffers(true);
+		connector.setPort(Integer.valueOf(null == portstr ? "8080" : portstr));
+		server.setConnectors(new Connector[] { connector });
 		server.start();
 		server.join();
 	}
-	
+
 }

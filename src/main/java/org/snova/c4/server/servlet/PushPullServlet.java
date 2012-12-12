@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.io.IOUtils;
 import org.arch.buffer.Buffer;
 import org.arch.buffer.BufferHelper;
 import org.arch.event.Event;
@@ -91,7 +90,6 @@ public class PushPullServlet extends HttpServlet {
 				int len = 0;
 				while (len < bodylen) {
 					content.read(req.getInputStream());
-					// IOUtils.
 					len = content.readableBytes();
 				}
 				if (len > 0) {

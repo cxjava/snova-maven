@@ -26,16 +26,8 @@
 			<scope>provided</scope>
 		</dependency>
 		<!-- DIY by 私服 start -->
-		<!-- <dependency>
-			<groupId>snova</groupId>
-			<artifactId>arch</artifactId>
-			<version>1.0</version>
-		</dependency> -->
-		<!-- <dependency>
-			<groupId>snova</groupId>
-			<artifactId>framework</artifactId>
-			<version>1.0</version>
-		</dependency> -->
+		<!-- <dependency> <groupId>snova</groupId> <artifactId>arch</artifactId> <version>1.0</version> </dependency> -->
+		<!-- <dependency> <groupId>snova</groupId> <artifactId>framework</artifactId> <version>1.0</version> </dependency> -->
 		<!-- DIY by 私服 end -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -47,11 +39,27 @@
 			<artifactId>slf4j-simple</artifactId>
 			<version>1.6.4</version>
 		</dependency>
-		<dependency>
+		<!-- <dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 			<version>2.4</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.mina</groupId>
+			<artifactId>mina-core</artifactId>
+			<version>2.0.7</version>
+		</dependency> -->
+		
+		<!-- <dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty</artifactId>
+			<version>4.0.0.Alpha8</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.grizzly</groupId>
+			<artifactId>grizzly-utils</artifactId>
+			<version>1.9.52</version>
+		</dependency> -->
 	</dependencies>
 	<build>
 		<plugins>
