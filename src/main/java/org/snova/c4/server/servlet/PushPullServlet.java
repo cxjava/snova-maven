@@ -4,9 +4,7 @@
 package org.snova.c4.server.servlet;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintStream;
-import java.util.HashSet;
 import java.util.LinkedList;
 
 import javax.servlet.ServletException;
@@ -14,6 +12,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.IOUtils;
 import org.arch.buffer.Buffer;
 import org.arch.buffer.BufferHelper;
 import org.arch.event.Event;
@@ -92,14 +91,13 @@ public class PushPullServlet extends HttpServlet {
 				int len = 0;
 				while (len < bodylen) {
 					content.read(req.getInputStream());
+					// IOUtils.
 					len = content.readableBytes();
 				}
 				if (len > 0) {
 					currentSession = RemoteProxySessionV2.dispatchEvent(userToken, content);
 				}
 			}
-
-			System.out.println("Process role:" + role);
 
 			LinkedList<Event> evs = new LinkedList<Event>();
 			do {

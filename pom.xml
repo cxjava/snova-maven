@@ -26,16 +26,16 @@
 			<scope>provided</scope>
 		</dependency>
 		<!-- DIY by 私服 start -->
-		<dependency>
+		<!-- <dependency>
 			<groupId>snova</groupId>
 			<artifactId>arch</artifactId>
 			<version>1.0</version>
-		</dependency>
-		<dependency>
+		</dependency> -->
+		<!-- <dependency>
 			<groupId>snova</groupId>
 			<artifactId>framework</artifactId>
 			<version>1.0</version>
-		</dependency>
+		</dependency> -->
 		<!-- DIY by 私服 end -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -46,6 +46,11 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-simple</artifactId>
 			<version>1.6.4</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
 		</dependency>
 	</dependencies>
 	<build>

@@ -60,7 +60,7 @@ public class ProxyConnectionManager {
 			int size = auths.size();
 			// logger.info("Success to connect " + size + " GAE server"
 			// + (size > 1 ? "s" : ""));
-			SharedObjectHelper.getTrace().info("Success to found " + size + " c4 server" + (size > 1 ? "s" : ""));
+			// SharedObjectHelper.getTrace().info("Success to found " + size + " c4 server" + (size > 1 ? "s" : ""));
 		}
 		seletor = new ListSelector<C4ServerAuth>(auths);
 		return true;

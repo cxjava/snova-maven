@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.arch.buffer.Buffer;
 import org.arch.buffer.BufferHelper;
-import org.arch.misc.crypto.base64.Base64;
+import org.arch.util.Base64;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;

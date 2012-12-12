@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.IOUtils;
 import org.snova.c4.common.C4PluginVersion;
 
 /**
@@ -26,14 +27,10 @@ public class IndexServlet extends HttpServlet {
 			if (null == is) {
 				return "#####No resource found.";
 			}
-			byte[] buffer = new byte[64 * 1024];
 			try {
-				int len = is.read(buffer);
-				content = new String(buffer, 0, len);
+				content = IOUtils.toString(is);
 				content = content.replace("${version}", C4PluginVersion.value);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
 		}
 		return content;
