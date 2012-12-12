@@ -18,32 +18,26 @@ import org.snova.c4.common.C4Constants;
  */
 @EventType(C4Constants.EVENT_TCP_CONNECTION_TYPE)
 @EventVersion(1)
-public class SocketConnectionEvent extends Event
-{
+public class SocketConnectionEvent extends Event {
 	public static final int TCP_CONN_OPENED = 1;
 	public static final int TCP_CONN_CLOSED = 2;
-	
+
 	public int status;
 	public String addr;
 
 	@Override
-	protected boolean onDecode(Buffer buffer)
-	{
-		try
-		{
+	protected boolean onDecode(Buffer buffer) {
+		try {
 			status = BufferHelper.readVarInt(buffer);
 			addr = BufferHelper.readVarString(buffer);
 			return true;
-		}
-		catch (IOException e)
-		{
+		} catch (IOException e) {
 			return false;
 		}
 	}
 
 	@Override
-	protected boolean onEncode(Buffer buffer)
-	{
+	protected boolean onEncode(Buffer buffer) {
 		BufferHelper.writeVarInt(buffer, status);
 		BufferHelper.writeVarString(buffer, addr);
 		return true;

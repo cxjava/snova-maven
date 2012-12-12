@@ -26,20 +26,15 @@ import org.snova.c4.server.session.RemoteProxySessionV2;
  * @author wqy
  * 
  */
-public class PushPullServlet extends HttpServlet
-{
-	protected Logger	logger	= LoggerFactory.getLogger(getClass());
-	
-	private void writeBytes(HttpServletResponse resp, byte[] buf, int off,
-	        int len) throws IOException
-	{
+public class PushPullServlet extends HttpServlet {
+	protected Logger logger = LoggerFactory.getLogger(getClass());
+
+	private void writeBytes(HttpServletResponse resp, byte[] buf, int off, int len) throws IOException {
 		int maxWriteLen = 8192;
 		int writed = 0;
-		while (writed < len)
-		{
+		while (writed < len) {
 			int writeLen = maxWriteLen;
-			if (writed + writeLen > len)
-			{
+			if (writed + writeLen > len) {
 				writeLen = len - writed;
 			}
 			resp.getOutputStream().write(buf, off + writed, writeLen);
@@ -48,42 +43,33 @@ public class PushPullServlet extends HttpServlet
 		}
 		// resp.getOutputStream().close();
 	}
-	
-	private void send(HttpServletResponse resp, Buffer buf) throws Exception
-	{
+
+	private void send(HttpServletResponse resp, Buffer buf) throws Exception {
 		resp.setStatus(200);
 		resp.setContentType("image/jpeg");
 		resp.setContentLength(buf.readableBytes());
-		writeBytes(resp, buf.getRawBuffer(), buf.getReadIndex(),
-		        buf.readableBytes());
+		writeBytes(resp, buf.getRawBuffer(), buf.getReadIndex(), buf.readableBytes());
 	}
-	
-	private void flushContent(HttpServletResponse resp, Buffer buf)
-	        throws Exception
-	{
+
+	private void flushContent(HttpServletResponse resp, Buffer buf) throws Exception {
 		resp.setStatus(200);
 		resp.setContentType("image/jpeg");
 		resp.setHeader("C4LenHeader", "1");
 		Buffer len = new Buffer(4);
 		BufferHelper.writeFixInt32(len, buf.readableBytes(), true);
-		resp.getOutputStream().write(len.getRawBuffer(), len.getReadIndex(),
-		        len.readableBytes());
-		resp.getOutputStream().write(buf.getRawBuffer(), buf.getReadIndex(),
-		        buf.readableBytes());
+		resp.getOutputStream().write(len.getRawBuffer(), len.getReadIndex(), len.readableBytes());
+		resp.getOutputStream().write(buf.getRawBuffer(), buf.getReadIndex(), buf.readableBytes());
 		resp.getOutputStream().flush();
 	}
-	
+
 	@Override
-	protected void doPost(HttpServletRequest req, final HttpServletResponse resp)
-	        throws ServletException, IOException
-	{
+	protected void doPost(HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
 		long begin = System.currentTimeMillis();
 		Buffer buf = new Buffer(4096);
 		RemoteProxySessionV2.init();
 		String userToken = req.getHeader(C4Constants.USER_TOKEN_HEADER);
 		String miscInfo = req.getHeader("C4MiscInfo");
-		if (null == userToken)
-		{
+		if (null == userToken) {
 			userToken = "";
 		}
 		String[] misc = miscInfo.split("_");
@@ -92,122 +78,90 @@ public class PushPullServlet extends HttpServlet
 		int maxRead = Integer.parseInt(misc[2]);
 		boolean isPull = role != null && role.equals("pull");
 		boolean supportChunk = true;
-		if (misc.length > 3)
-		{
+		if (misc.length > 3) {
 			supportChunk = false;
 		}
-		
+
 		long deadline = begin + timeout * 1000;
 		boolean sentData = false;
 		RemoteProxySessionV2 currentSession = null;
-		try
-		{
+		try {
 			int bodylen = req.getContentLength();
-			if (bodylen > 0)
-			{
+			if (bodylen > 0) {
 				Buffer content = new Buffer(bodylen);
 				int len = 0;
-				while (len < bodylen)
-				{
+				while (len < bodylen) {
 					content.read(req.getInputStream());
 					len = content.readableBytes();
 				}
-				if (len > 0)
-				{
+				if (len > 0) {
 					currentSession = RemoteProxySessionV2.dispatchEvent(userToken, content);
 				}
 			}
-			
+
 			System.out.println("Process role:" + role);
-			
+
 			LinkedList<Event> evs = new LinkedList<Event>();
-			do
-			{
+			do {
 				evs.clear();
-				if(null != currentSession)
-				{
-					currentSession.extractEventResponses(buf, maxRead,
-					        evs);
+				if (null != currentSession) {
+					currentSession.extractEventResponses(buf, maxRead, evs);
 				}
-				if (isPull)
-				{
-					if (buf.readableBytes() > 0)
-					{
-						if (supportChunk)
-						{
+				if (isPull) {
+					if (buf.readableBytes() > 0) {
+						if (supportChunk) {
 							flushContent(resp, buf);
 							buf.clear();
-						}
-						else
-						{
+						} else {
 							break;
 						}
-					}
-					else
-					{
+					} else {
 						Thread.sleep(1);
 					}
-					if (null != currentSession && currentSession.isClosing())
-					{
+					if (null != currentSession && currentSession.isClosing()) {
 						break;
 					}
-					if (System.currentTimeMillis() >= deadline)
-					{
+					if (System.currentTimeMillis() >= deadline) {
 						break;
 					}
-					int timeoutsec = (int) ((deadline - System
-					        .currentTimeMillis()) / 1000);
-					if (timeoutsec == 0)
-					{
+					int timeoutsec = (int) ((deadline - System.currentTimeMillis()) / 1000);
+					if (timeoutsec == 0) {
 						break;
 					}
-					if(null != currentSession)
-					{
+					if (null != currentSession) {
 						currentSession.readClient(maxRead, timeoutsec);
 					}
-					if (System.currentTimeMillis() >= deadline)
-					{
+					if (System.currentTimeMillis() >= deadline) {
 						break;
 					}
 				}
-				
+
 			} while (isPull);
-			
+
 			int size = buf.readableBytes();
-			try
-			{
+			try {
 				sentData = true;
-				if (!isPull || !supportChunk)
-				{
+				if (!isPull || !supportChunk) {
 					send(resp, buf);
-				}
-				else
-				{
+				} else {
 					resp.getOutputStream().close();
 				}
-			}
-			catch (Exception e)
-			{
-				logger.error("Requeue events since write " + size
-				        + " bytes while exception occured.", e);
+			} catch (Exception e) {
+				logger.error("Requeue events since write " + size + " bytes while exception occured.", e);
 				e.printStackTrace();
-				if (null != currentSession)
-				{
+				if (null != currentSession) {
 					currentSession.requeueEvents(evs);
 				}
 				buf.clear();
 				resp.getOutputStream().close();
 			}
-		}
-		catch (Throwable e)
-		{
+		} catch (Throwable e) {
 			resp.setStatus(400);
 			e.printStackTrace();
 			e.printStackTrace(new PrintStream(resp.getOutputStream()));
 			// logger.warn("Failed to process message", e);
 		}
-		if (!sentData)
-		{
+		if (!sentData) {
 			resp.setStatus(200);
 			resp.setContentLength(0);
 		}

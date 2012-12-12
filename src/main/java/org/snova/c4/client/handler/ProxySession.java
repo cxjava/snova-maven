@@ -25,12 +25,9 @@ import org.snova.framework.config.SimpleSocketAddress;
  * @author qiyingwang
  * 
  */
-public class ProxySession
-{
-	protected static Logger logger = LoggerFactory
-	        .getLogger(ProxySession.class);
-	private ProxyConnectionManager connectionManager = ProxyConnectionManager
-	        .getInstance();
+public class ProxySession {
+	protected static Logger logger = LoggerFactory.getLogger(ProxySession.class);
+	private ProxyConnectionManager connectionManager = ProxyConnectionManager.getInstance();
 	private ProxyConnection pushConnection = null;
 	private ProxyConnection pullConnection = null;
 	private Integer sessionID;
@@ -41,23 +38,18 @@ public class ProxySession
 	private AtomicInteger sequence = new AtomicInteger(0);
 	private AtomicInteger readSequence = new AtomicInteger(0);
 
-	public ProxySession(Integer id, Channel localChannel)
-	{
+	public ProxySession(Integer id, Channel localChannel) {
 		this.sessionID = id;
 		this.localHTTPChannel = localChannel;
 	}
 
-	public Integer getSessionID()
-	{
+	public Integer getSessionID() {
 		return sessionID;
 	}
 
-	private void initConnection(HTTPRequestEvent event)
-	{
-		if (null == pushConnection)
-		{
-			ProxyConnection[] conns = connectionManager
-			        .getDualClientConnection(event);
+	private void initConnection(HTTPRequestEvent event) {
+		if (null == pushConnection) {
+			ProxyConnection[] conns = connectionManager.getDualClientConnection(event);
 			pushConnection = conns[0];
 			pullConnection = conns[1];
 			pushConnection.setSession(this);
@@ -70,145 +62,102 @@ public class ProxySession
 		}
 	}
 
-
-	public void handleResponse(final Event res)
-	{
+	public void handleResponse(final Event res) {
 		doHandleResponse(res);
 	}
 
-	public void doHandleResponse(Event res)
-	{
-		if (logger.isDebugEnabled())
-		{
-			logger.debug("Session[" + getSessionID()
-			        + "] handle received HTTP response event:"
-			        + res.getClass().getName() + " at thread:"
-			        + Thread.currentThread().getName());
+	public void doHandleResponse(Event res) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("Session[" + getSessionID() + "] handle received HTTP response event:"
+					+ res.getClass().getName() + " at thread:" + Thread.currentThread().getName());
 		}
-		if (res instanceof SocketConnectionEvent)
-		{
+		if (res instanceof SocketConnectionEvent) {
 			SocketConnectionEvent conn = (SocketConnectionEvent) res;
-			if (conn.status == SocketConnectionEvent.TCP_CONN_CLOSED)
-			{
-				if (conn.addr.equalsIgnoreCase(remoteAddr))
-				{
-					if (null != writeFuture)
-					{
-						writeFuture.addListener(new ChannelFutureListener()
-						{
+			if (conn.status == SocketConnectionEvent.TCP_CONN_CLOSED) {
+				if (conn.addr.equalsIgnoreCase(remoteAddr)) {
+					if (null != writeFuture) {
+						writeFuture.addListener(new ChannelFutureListener() {
 							@Override
-							public void operationComplete(ChannelFuture future)
-							        throws Exception
-							{
+							public void operationComplete(ChannelFuture future) throws Exception {
 								close();
 							}
 						});
-					}
-					else
-					{
+					} else {
 						close();
 					}
 				}
 			}
-		}
-		else if (res instanceof TCPChunkEvent)
-		{
+		} else if (res instanceof TCPChunkEvent) {
 			// status = ProxySessionStatus.PROCEEDING;
 			final TCPChunkEvent chunk = (TCPChunkEvent) res;
-			if (logger.isDebugEnabled())
-			{
-				logger.debug("Session[" + getSessionID()
-				        + "] received sequence chunk:" + chunk.sequence);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Session[" + getSessionID() + "] received sequence chunk:" + chunk.sequence);
 			}
-			if (null != localHTTPChannel && localHTTPChannel.isConnected())
-			{
-				writeFuture = localHTTPChannel.write(ChannelBuffers
-				        .wrappedBuffer(chunk.content));
-			}
-			else
-			{
+			if (null != localHTTPChannel && localHTTPChannel.isConnected()) {
+				writeFuture = localHTTPChannel.write(ChannelBuffers.wrappedBuffer(chunk.content));
+			} else {
 				close();
-				logger.error("Failed to write back content for session:"
-				        + getSessionID());
+				logger.error("Failed to write back content for session:" + getSessionID());
 			}
 		}
 	}
 
-	private void handleConnect(HTTPRequestEvent event)
-	{
+	private void handleConnect(HTTPRequestEvent event) {
 		localHTTPChannel.getPipeline().remove("decoder");
 		localHTTPChannel.getPipeline().remove("encoder");
 		initConnection(event);
 		pushConnection.send(event);
 	}
 
-	protected SimpleSocketAddress getRemoteAddress(HTTPRequestEvent request)
-	{
+	protected SimpleSocketAddress getRemoteAddress(HTTPRequestEvent request) {
 		String host = request.getHeader("Host");
-		if (null == host)
-		{
+		if (null == host) {
 			String url = request.url;
-			if (url.startsWith("http://"))
-			{
+			if (url.startsWith("http://")) {
 				url = url.substring(7);
 				int next = url.indexOf("/");
 				host = url.substring(0, next);
-			}
-			else
-			{
+			} else {
 				host = url;
 			}
 		}
 		int index = host.indexOf(":");
 		int port = 80;
-		if (request.method.equalsIgnoreCase("Connect"))
-		{
+		if (request.method.equalsIgnoreCase("Connect")) {
 			port = 443;
 		}
 		String hostValue = host;
-		if (index > 0)
-		{
+		if (index > 0) {
 			hostValue = host.substring(0, index).trim();
 			port = Integer.parseInt(host.substring(index + 1).trim());
 		}
-		if (logger.isDebugEnabled())
-		{
+		if (logger.isDebugEnabled()) {
 			logger.debug("Get remote address " + hostValue + ":" + port);
 		}
 		return new SimpleSocketAddress(hostValue, port);
 	}
 
-	public synchronized void handle(HTTPRequestEvent event)
-	{
+	public synchronized void handle(HTTPRequestEvent event) {
 		clearStatus();
 		String host = event.getHeader("Host");
 		remoteAddr = host;
-		if (host.indexOf(":") == -1)
-		{
-			if (event.method.equalsIgnoreCase(HttpMethod.CONNECT.getName()))
-			{
+		if (host.indexOf(":") == -1) {
+			if (event.method.equalsIgnoreCase(HttpMethod.CONNECT.getName())) {
 				remoteAddr = remoteAddr + ":443";
-			}
-			else
-			{
+			} else {
 				remoteAddr = remoteAddr + ":80";
 			}
 		}
 		readSequence.set(0);
 
-		if (event.method.equalsIgnoreCase(HttpMethod.CONNECT.getName()))
-		{
+		if (event.method.equalsIgnoreCase(HttpMethod.CONNECT.getName())) {
 			handleConnect(event);
-			if (logger.isDebugEnabled())
-			{
+			if (logger.isDebugEnabled()) {
 				logger.debug("Session[" + getSessionID() + "] sent request.");
 				logger.debug(event.toString());
 			}
-		}
-		else
-		{
-			if (event.url.startsWith("http://" + host))
-			{
+		} else {
+			if (event.url.startsWith("http://" + host)) {
 				int start = "http://".length();
 				int end = event.url.indexOf("/", start);
 				event.url = event.url.substring(end);
@@ -216,46 +165,36 @@ public class ProxySession
 			initConnection(event);
 			pushConnection.send(event);
 
-			if (logger.isDebugEnabled())
-			{
+			if (logger.isDebugEnabled()) {
 				logger.debug("Session[" + getSessionID() + "] sent request.");
 				logger.debug(event.toString());
 			}
 		}
 	}
 
-	public synchronized void handle(HTTPChunkEvent event)
-	{
-		if (null != pushConnection)
-		{
-			if (event.content.length > 0)
-			{
+	public synchronized void handle(HTTPChunkEvent event) {
+		if (null != pushConnection) {
+			if (event.content.length > 0) {
 				TCPChunkEvent chunk = new TCPChunkEvent();
 				chunk.setHash(getSessionID());
 				chunk.content = event.content;
 				chunk.sequence = sequence.getAndIncrement();
 				pushConnection.send(chunk);
 			}
-		}
-		else
-		{
+		} else {
 			close();
 		}
 	}
 
-	private void clearStatus()
-	{
+	private void clearStatus() {
 		sequence.set(0);
 	}
 
-	public void close()
-	{
-		if (ProxySessionManager.getInstance().getProxySession(getSessionID()) == null)
-		{
+	public void close() {
+		if (ProxySessionManager.getInstance().getProxySession(getSessionID()) == null) {
 			return;
 		}
-		if (null != localHTTPChannel && localHTTPChannel.isConnected())
-		{
+		if (null != localHTTPChannel && localHTTPChannel.isConnected()) {
 			localHTTPChannel.close();
 		}
 		localHTTPChannel = null;
@@ -263,13 +202,11 @@ public class ProxySession
 		ev.setHash(getSessionID());
 		ev.addr = remoteAddr;
 		ev.status = SocketConnectionEvent.TCP_CONN_CLOSED;
-		if (null != pushConnection)
-		{
+		if (null != pushConnection) {
 			pushConnection.send(ev);
 			pushConnection.stop();
 		}
-		if (null != pullConnection)
-		{
+		if (null != pullConnection) {
 			pullConnection.stop();
 		}
 		ProxySessionManager.getInstance().removeSession(this);

@@ -18,29 +18,23 @@ import org.snova.c4.common.C4Constants;
  */
 @EventType(C4Constants.EVENT_SOCKET_READ_TYPE)
 @EventVersion(1)
-public class SocketReadEvent extends Event
-{
+public class SocketReadEvent extends Event {
 	public int timeout;
 	public int maxread;
 
 	@Override
-	protected boolean onDecode(Buffer buffer)
-	{
-		try
-		{
+	protected boolean onDecode(Buffer buffer) {
+		try {
 			timeout = BufferHelper.readVarInt(buffer);
 			maxread = BufferHelper.readVarInt(buffer);
 			return true;
-		}
-		catch (IOException e)
-		{
+		} catch (IOException e) {
 			return false;
 		}
 	}
 
 	@Override
-	protected boolean onEncode(Buffer buffer)
-	{
+	protected boolean onEncode(Buffer buffer) {
 		BufferHelper.writeVarInt(buffer, timeout);
 		BufferHelper.writeVarInt(buffer, maxread);
 		return true;

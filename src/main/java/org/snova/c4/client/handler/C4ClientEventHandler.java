@@ -19,57 +19,45 @@ import org.slf4j.LoggerFactory;
  * @author wqy
  * 
  */
-public class C4ClientEventHandler implements NamedEventHandler
-{
+public class C4ClientEventHandler implements NamedEventHandler {
 	protected Logger logger = LoggerFactory.getLogger(getClass());
-	private ProxySessionManager	sessionManager	= ProxySessionManager
-	                                                   .getInstance();
-	
-	private void handleRequest(HTTPRequestEvent event, Channel localChannel)
-	{
+	private ProxySessionManager sessionManager = ProxySessionManager.getInstance();
+
+	private void handleRequest(HTTPRequestEvent event, Channel localChannel) {
 		sessionManager.handleRequest(event);
 	}
-	
-	private void handleChunk(HTTPChunkEvent event, Channel localChannel)
-	{
+
+	private void handleChunk(HTTPChunkEvent event, Channel localChannel) {
 		sessionManager.handleChunk(event);
 	}
-	
+
 	@Override
-	public void onEvent(EventHeader header, Event event)
-	{
-		Pair<Channel, Integer> attch = (Pair<Channel, Integer>) event
-		        .getAttachment();
-		switch (header.type)
-		{
-			case HTTPEventContants.HTTP_REQUEST_EVENT_TYPE:
-			{
-				handleRequest((HTTPRequestEvent) event, attch.first);
-				break;
-			}
-			case HTTPEventContants.HTTP_CHUNK_EVENT_TYPE:
-			{
-				handleChunk((HTTPChunkEvent) event, attch.first);
-				break;
-			}
-			case HTTPEventContants.HTTP_CONNECTION_EVENT_TYPE:
-			{
-				HTTPConnectionEvent ev = (HTTPConnectionEvent) event;
-				sessionManager.handleConnectionEvent(ev);
-				break;
-			}
-			default:
-			{
-				logger.error("Unexpected event type:" + header.type);
-				break;
-			}
+	public void onEvent(EventHeader header, Event event) {
+		Pair<Channel, Integer> attch = (Pair<Channel, Integer>) event.getAttachment();
+		switch (header.type) {
+		case HTTPEventContants.HTTP_REQUEST_EVENT_TYPE: {
+			handleRequest((HTTPRequestEvent) event, attch.first);
+			break;
+		}
+		case HTTPEventContants.HTTP_CHUNK_EVENT_TYPE: {
+			handleChunk((HTTPChunkEvent) event, attch.first);
+			break;
+		}
+		case HTTPEventContants.HTTP_CONNECTION_EVENT_TYPE: {
+			HTTPConnectionEvent ev = (HTTPConnectionEvent) event;
+			sessionManager.handleConnectionEvent(ev);
+			break;
+		}
+		default: {
+			logger.error("Unexpected event type:" + header.type);
+			break;
+		}
 		}
 	}
-	
+
 	@Override
-	public String getName()
-	{
+	public String getName() {
 		return "C4";
 	}
-	
+
 }

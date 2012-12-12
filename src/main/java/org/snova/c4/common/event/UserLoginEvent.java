@@ -14,32 +14,27 @@ import org.snova.c4.common.C4Constants;
 
 /**
  * @author qiyingwang
- *
+ * 
  */
 @EventType(C4Constants.EVENT_USER_LOGIN_TYPE)
 @EventVersion(1)
-public class UserLoginEvent extends Event
-{
+public class UserLoginEvent extends Event {
 	public String user;
-	@Override
-    protected boolean onDecode(Buffer buf)
-    {
-		try
-		{
-			user = BufferHelper.readVarString(buf);
-			return true;
-		}
-		catch (IOException e)
-		{
-			return false;
-		}
-    }
 
 	@Override
-    protected boolean onEncode(Buffer buf)
-    {
+	protected boolean onDecode(Buffer buf) {
+		try {
+			user = BufferHelper.readVarString(buf);
+			return true;
+		} catch (IOException e) {
+			return false;
+		}
+	}
+
+	@Override
+	protected boolean onEncode(Buffer buf) {
 		BufferHelper.writeVarString(buf, user);
-	    return true;
-    }
+		return true;
+	}
 
 }

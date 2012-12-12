@@ -25,69 +25,49 @@ import org.arch.event.socket.SocketDataEvent;
  * @author qiyingwang
  * 
  */
-public class C4Events
-{
-	
-	private static void registerEventHandler(Class<? extends Event> clazz,
-	        EventHandler handler)
-	{
-		try
-		{
+public class C4Events {
+
+	private static void registerEventHandler(Class<? extends Event> clazz, EventHandler handler) {
+		try {
 			EventDispatcher.getSingletonInstance().register(clazz, handler);
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			
+
 		}
 	}
-	
-	public static void init(EventHandler handler, boolean isServer)
-	{
-		try
-		{
+
+	public static void init(EventHandler handler, boolean isServer) {
+		try {
 			registerEventHandler(HTTPResponseEvent.class, handler);
 			registerEventHandler(HTTPErrorEvent.class, handler);
 			registerEventHandler(EventSegment.class, handler);
-			
+
 			registerEventHandler(CompressEvent.class, handler);
 			registerEventHandler(EncryptEvent.class, handler);
 			registerEventHandler(CompressEventV2.class, handler);
 			registerEventHandler(EncryptEventV2.class, handler);
-			
+
 			registerEventHandler(SocketConnectionEvent.class, handler);
 			registerEventHandler(UserLoginEvent.class, handler);
 			registerEventHandler(TCPChunkEvent.class, handler);
 			registerEventHandler(RSocketAcceptedEvent.class, handler);
 			registerEventHandler(SocketReadEvent.class, handler);
-			if (isServer)
-			{
-				EventDispatcher.getSingletonInstance().register(
-				        HTTPRequestEvent.class, handler);
-				EventDispatcher.getSingletonInstance().register(
-				        HTTPChunkEvent.class, handler);
-				EventDispatcher.getSingletonInstance().register(
-				        HTTPConnectionEvent.class, handler);
-				EventDispatcher.getSingletonInstance().register(
-				        SocketConnectEvent.class, handler);
-				EventDispatcher.getSingletonInstance().register(
-						SocketDataEvent.class, handler);
-				EventDispatcher.getSingletonInstance().register(
-						SocketCloseEvent.class, handler);
-			}
-			else
-			{
-				if(null != handler && handler instanceof NamedEventHandler)
-				{
+			if (isServer) {
+				EventDispatcher.getSingletonInstance().register(HTTPRequestEvent.class, handler);
+				EventDispatcher.getSingletonInstance().register(HTTPChunkEvent.class, handler);
+				EventDispatcher.getSingletonInstance().register(HTTPConnectionEvent.class, handler);
+				EventDispatcher.getSingletonInstance().register(SocketConnectEvent.class, handler);
+				EventDispatcher.getSingletonInstance().register(SocketDataEvent.class, handler);
+				EventDispatcher.getSingletonInstance().register(SocketCloseEvent.class, handler);
+			} else {
+				if (null != handler && handler instanceof NamedEventHandler) {
 					EventDispatcher.getSingletonInstance().registerNamedEventHandler((NamedEventHandler) handler);
 				}
 			}
-			
+
+		} catch (Exception e) {
+
 		}
-		catch (Exception e)
-		{
-			
-		}
-		
+
 	}
 }

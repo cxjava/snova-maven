@@ -16,49 +16,40 @@ import org.snova.c4.common.event.C4Events;
 import org.snova.framework.plugin.Plugin;
 import org.snova.framework.plugin.PluginContext;
 
-public class C4 implements Plugin
-{
-	protected static Logger	logger	= LoggerFactory.getLogger(C4.class);
-	
+public class C4 implements Plugin {
+	protected static Logger logger = LoggerFactory.getLogger(C4.class);
+
 	@Override
-	public void onLoad(PluginContext context) throws Exception
-	{
-		
+	public void onLoad(PluginContext context) throws Exception {
+
 	}
-	
+
 	@Override
-	public void onActive(PluginContext context) throws Exception
-	{
+	public void onActive(PluginContext context) throws Exception {
 		C4Events.init(new C4ClientEventHandler(), false);
 	}
-	
+
 	@Override
-	public void onDeactive(PluginContext context) throws Exception
-	{
-		
+	public void onDeactive(PluginContext context) throws Exception {
+
 	}
-	
+
 	@Override
-	public void onUnload(PluginContext context) throws Exception
-	{
-		
+	public void onUnload(PluginContext context) throws Exception {
+
 	}
-	
+
 	@Override
-	public Runnable getAdminInterface()
-	{
+	public Runnable getAdminInterface() {
 		return null;
 	}
-	
+
 	@Override
-	public void onStart() throws Exception
-	{
-		ProxyConnectionManager.getInstance().init(
-		        C4ClientConfiguration.getInstance().getC4ServerAuths());
+	public void onStart() throws Exception {
+		ProxyConnectionManager.getInstance().init(C4ClientConfiguration.getInstance().getC4ServerAuths());
 	}
-	
+
 	@Override
-	public void onStop() throws Exception
-	{
+	public void onStop() throws Exception {
 	}
 }

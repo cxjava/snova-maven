@@ -7,8 +7,7 @@ package org.snova.c4.common;
  * @author wqy
  * 
  */
-public interface C4Constants
-{
+public interface C4Constants {
 	// public static final int EVENT_REST_REQEUST_TYPE = 11500;
 	public static final int EVENT_USER_LOGIN_TYPE = 12002;
 	public static final int EVENT_TCP_CONNECTION_TYPE = 12000;

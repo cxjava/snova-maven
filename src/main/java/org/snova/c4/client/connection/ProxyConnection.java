@@ -33,60 +33,47 @@ import org.snova.framework.util.SharedObjectHelper;
  * @author qiyingwang
  * 
  */
-public abstract class ProxyConnection
-{
-	protected static Logger logger = LoggerFactory
-	        .getLogger(ProxyConnection.class);
-	protected static C4ClientConfiguration cfg = C4ClientConfiguration
-	        .getInstance();
+public abstract class ProxyConnection {
+	protected static Logger logger = LoggerFactory.getLogger(ProxyConnection.class);
+	protected static C4ClientConfiguration cfg = C4ClientConfiguration.getInstance();
 	protected static ClientSocketChannelFactory clientChannelFactory;
 	protected C4ServerAuth auth = null;
 	protected boolean isPullConnection;
 	protected boolean isRunning;
 
-	public void setPullConnection(boolean isPullConnection)
-	{
+	public void setPullConnection(boolean isPullConnection) {
 		this.isPullConnection = isPullConnection;
 	}
 
 	private ProxySession session = null;
 
-	public ProxySession getSession()
-	{
+	public ProxySession getSession() {
 		return session;
 	}
 
-	public void setSession(ProxySession session)
-	{
+	public void setSession(ProxySession session) {
 		this.session = session;
 	}
 
-	protected static ClientSocketChannelFactory getClientSocketChannelFactory()
-	{
-		if (null == clientChannelFactory)
-		{
-			if (null == SharedObjectHelper.getGlobalThreadPool())
-			{
-				ThreadPoolExecutor workerExecutor = new OrderedMemoryAwareThreadPoolExecutor(
-				        20, 0, 0);
+	protected static ClientSocketChannelFactory getClientSocketChannelFactory() {
+		if (null == clientChannelFactory) {
+			if (null == SharedObjectHelper.getGlobalThreadPool()) {
+				ThreadPoolExecutor workerExecutor = new OrderedMemoryAwareThreadPoolExecutor(20, 0, 0);
 				SharedObjectHelper.setGlobalThreadPool(workerExecutor);
 
 			}
-			clientChannelFactory = new NioClientSocketChannelFactory(
-			        SharedObjectHelper.getGlobalThreadPool(),
-			        SharedObjectHelper.getGlobalThreadPool());
+			clientChannelFactory = new NioClientSocketChannelFactory(SharedObjectHelper.getGlobalThreadPool(),
+					SharedObjectHelper.getGlobalThreadPool());
 
 		}
 		return clientChannelFactory;
 	}
 
-	protected ProxyConnection(C4ServerAuth auth)
-	{
+	protected ProxyConnection(C4ServerAuth auth) {
 		this.auth = auth;
 	}
 
-	public C4ServerAuth getC4ServerAuth()
-	{
+	public C4ServerAuth getC4ServerAuth() {
 		return auth;
 	}
 
@@ -94,27 +81,21 @@ public abstract class ProxyConnection
 
 	protected abstract void doClose();
 
-	public void close()
-	{
+	public void close() {
 		doClose();
 	}
 
-	public void start()
-	{
+	public void start() {
 		isRunning = true;
 	}
 
-	public void stop()
-	{
+	public void stop() {
 		isRunning = false;
 	}
 
-	public boolean send(Event event)
-	{
-		if (event instanceof HTTPRequestEvent)
-		{
-			CompressEventV2 tmp = new CompressEventV2(cfg.getCompressor(),
-			        event);
+	public boolean send(Event event) {
+		if (event instanceof HTTPRequestEvent) {
+			CompressEventV2 tmp = new CompressEventV2(cfg.getCompressor(), event);
 			tmp.setHash(event.getHash());
 			event = tmp;
 		}
@@ -126,26 +107,22 @@ public abstract class ProxyConnection
 		return doSend(msgbuffer);
 	}
 
-	public void pullData()
-	{
-		if (isPullConnection && isRunning && null != session)
-		{
+	public void pullData() {
+		if (isPullConnection && isRunning && null != session) {
 			SocketReadEvent ev = new SocketReadEvent();
 			ev.setHash(session.getSessionID());
 			ev.maxread = cfg.getMaxReadBytes();
 			ev.timeout = cfg.getHTTPRequestTimeout();
 			send(ev);
-//			if (logger.isDebugEnabled())
-//			{
-//				logger.debug("Send pull data request.");
-//			}
+			// if (logger.isDebugEnabled())
+			// {
+			// logger.debug("Send pull data request.");
+			// }
 		}
 	}
 
-	protected void handleRecvEvent(Event ev)
-	{
-		if (null == ev)
-		{
+	protected void handleRecvEvent(Event ev) {
+		if (null == ev) {
 			logger.error("NULL event to handle!");
 			// close();
 			return;
@@ -153,63 +130,44 @@ public abstract class ProxyConnection
 
 		TypeVersion typever = Event.getTypeVersion(ev.getClass());
 
-		switch (typever.type)
-		{
-			case EventConstants.COMPRESS_EVENT_TYPE:
-			{
-				if (typever.version == 1)
-				{
-					handleRecvEvent(((CompressEvent) ev).ev);
-				}
-				else if (typever.version == 2)
-				{
-					handleRecvEvent(((CompressEventV2) ev).ev);
-				}
+		switch (typever.type) {
+		case EventConstants.COMPRESS_EVENT_TYPE: {
+			if (typever.version == 1) {
+				handleRecvEvent(((CompressEvent) ev).ev);
+			} else if (typever.version == 2) {
+				handleRecvEvent(((CompressEventV2) ev).ev);
+			}
 
-				return;
+			return;
+		}
+		case EventConstants.ENCRYPT_EVENT_TYPE: {
+			if (typever.version == 1) {
+				handleRecvEvent(((EncryptEvent) ev).ev);
+			} else if (typever.version == 2) {
+				handleRecvEvent(((EncryptEventV2) ev).ev);
 			}
-			case EventConstants.ENCRYPT_EVENT_TYPE:
-			{
-				if (typever.version == 1)
-				{
-					handleRecvEvent(((EncryptEvent) ev).ev);
-				}
-				else if (typever.version == 2)
-				{
-					handleRecvEvent(((EncryptEventV2) ev).ev);
-				}
-				return;
-			}
-			case C4Constants.EVENT_TCP_CHUNK_TYPE:
-			case C4Constants.EVENT_TCP_CONNECTION_TYPE:
-			case HTTPEventContants.HTTP_CHUNK_EVENT_TYPE:
-			case HTTPEventContants.HTTP_RESPONSE_EVENT_TYPE:
-			{
-				break;
-			}
-			default:
-			{
-				logger.error("Unsupported event type:" + typever.type
-				        + " for proxy connection");
-				break;
-			}
+			return;
+		}
+		case C4Constants.EVENT_TCP_CHUNK_TYPE:
+		case C4Constants.EVENT_TCP_CONNECTION_TYPE:
+		case HTTPEventContants.HTTP_CHUNK_EVENT_TYPE:
+		case HTTPEventContants.HTTP_RESPONSE_EVENT_TYPE: {
+			break;
+		}
+		default: {
+			logger.error("Unsupported event type:" + typever.type + " for proxy connection");
+			break;
+		}
 		}
 
-		if (null != session)
-		{
+		if (null != session) {
 			session.handleResponse(ev);
-		}
-		else
-		{
-			if (logger.isDebugEnabled())
-			{
-				logger.error("Failed o find session or handle to handle received session["
-				        + ev.getHash()
-				        + "] response event:"
-				        + ev.getClass().getName());
+		} else {
+			if (logger.isDebugEnabled()) {
+				logger.error("Failed o find session or handle to handle received session[" + ev.getHash()
+						+ "] response event:" + ev.getClass().getName());
 			}
-			if (typever.type != C4Constants.EVENT_TCP_CONNECTION_TYPE)
-			{
+			if (typever.type != C4Constants.EVENT_TCP_CONNECTION_TYPE) {
 				SocketConnectionEvent tmp = new SocketConnectionEvent();
 				tmp.status = SocketConnectionEvent.TCP_CONN_CLOSED;
 				tmp.setHash(ev.getHash());
@@ -218,24 +176,17 @@ public abstract class ProxyConnection
 		}
 	}
 
-	protected void doRecv(Buffer content)
-	{
+	protected void doRecv(Buffer content) {
 		Event ev = null;
-		try
-		{
+		try {
 			// int i = 0;
-			while (content.readable())
-			{
+			while (content.readable()) {
 				ev = EventDispatcher.getSingletonInstance().parse(content);
 				handleRecvEvent(ev);
 				// i++;
 			}
-		}
-		catch (Exception e)
-		{
-			logger.error(
-			        "Failed to parse event while content rest:"
-			                + content.readableBytes(), e);
+		} catch (Exception e) {
+			logger.error("Failed to parse event while content rest:" + content.readableBytes(), e);
 			return;
 		}
 	}
