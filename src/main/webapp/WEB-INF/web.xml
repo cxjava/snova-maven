@@ -19,7 +19,16 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 		<servlet-name>DNSQuery</servlet-name>
 		<servlet-class>org.snova.httpdns.DNSServlet</servlet-class>
 	</servlet>
+	
+	<servlet>
+		<servlet-name>IpAddressQuery</servlet-name>
+		<servlet-class>org.snova.ipaddress.IpAddressServlet</servlet-class>
+	</servlet>
 
+	<servlet-mapping>
+		<servlet-name>IpAddressQuery</servlet-name>
+		<url-pattern>/ipAddress</url-pattern>
+	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>DNSQuery</servlet-name>
 		<url-pattern>/dns</url-pattern>
